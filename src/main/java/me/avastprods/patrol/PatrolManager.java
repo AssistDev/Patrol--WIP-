@@ -7,6 +7,7 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -36,6 +37,36 @@ public class PatrolManager {
 	 */
 	public Map<String, String> patrolCurrent = new HashMap<>();
 	
+	/**
+	 * Contains information of patroller's inventory contents.
+	 */
+	public Map<String, ItemStack[]> patrolInv = new HashMap<>();
+	
+	/**
+	 * Contains information of patroller's armor contents.
+	 */
+	public Map<String, ItemStack[]> patrolArmor = new HashMap<>();
+	
+	/**
+	 * Contains information of patroller's health.
+	 */
+	public Map<String, Double> patrolHealth = new HashMap<>();
+	
+	/**
+	 * Contains information of patroller's hunger.
+	 */
+	public Map<String, Integer> patrolHunger = new HashMap<>();
+	
+	/**
+	 * Contains information of patroller's exp level.
+	 */
+	public Map<String, Integer> patrolLevel = new HashMap<>();
+	
+	/**
+	 * Contains information of patroller's experience.
+	 */
+	public Map<String, Float> patrolExp = new HashMap<>();
+	
 	public Player getCurrent(Player player) {
 		if(patrolCurrent.containsKey(player.getName())) {
 			return Bukkit.getPlayer(patrolCurrent.get(player.getName()));
@@ -45,11 +76,11 @@ public class PatrolManager {
 	}
 	
 	/**
-	 * 
+	 * Gets the next random patrolled player.
 	 * @param player
 	 * @return - Next patrolled player
 	 */
-	public Player next(Player player) {
+	public boolean next(Player player) {
 		if(patrolList.containsKey(player.getName())) {
 			int phase = patrolPhase.get(player.getName());
 			
@@ -61,20 +92,24 @@ public class PatrolManager {
 				for(String str : patrolList.get(player.getName())) {
 					if(!str.equalsIgnoreCase(Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)].getName())) {
 						Player r = Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)];
-						patrolPhase.put(player.getName(), next);
-						patrolCurrent.put(player.getName(), r.getName());
 						
 						List<String> list = patrolList.get(player.getName());
 						list.add(r.getName());
 						
 						patrolList.put(player.getName(), list);
-						return r;
+						
+						patrolPhase.put(player.getName(), next);
+						patrolCurrent.put(player.getName(), r.getName());
+						
+						patrol(player, r);
+						
+						return true;
 					}
 				}
 			}
 		}
 		
-		return null;
+		return false;
 	}
 	
 	/**
@@ -87,5 +122,59 @@ public class PatrolManager {
 		
 		player.teleport(target.getLocation());
 		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1));
+		
+		PatrolTask task = new PatrolTask(clazz);
+		task.setId(Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(clazz, task, 200L), player);
+	}
+	
+	/**
+	 * Prepares a patroller for the first patrol.
+	 * @param player Patroller
+	 */
+	public void prepare(Player player) {
+		this.patrolInv.put(player.getName(), player.getInventory().getContents());
+		this.patrolArmor.put(player.getName(), player.getInventory().getArmorContents());
+		//this.patrolHealth.put(player.getName(), player.getHealth());
+		this.patrolHunger.put(player.getName(), player.getFoodLevel());
+		this.patrolLevel.put(player.getName(), player.getLevel());
+		this.patrolExp.put(player.getName(), player.getExp());
+	}
+	
+	/**
+	 * Stops the patrol for given player.
+	 * @param player Patroller
+	 */
+	public void stop(Player player) {
+		if(patrolList.containsKey(player.getName())) {
+			for(String str : patrolList.get(player.getName())) {
+				Bukkit.getPlayer(str).showPlayer(player);
+			}
+			
+			PatrolTask task = new PatrolTask(clazz);
+			
+			if(task.patrolTasks.containsKey(player.getName())) {
+				clazz.getServer().getScheduler().cancelTask(task.patrolTasks.get(player.getName()));
+			}
+			
+			patrolList.remove(player.getName());
+			patrolPhase.remove(player.getName());
+			patrolCurrent.remove(player.getName());
+			
+			player.removePotionEffect(PotionEffectType.INVISIBILITY);
+			
+			player.getInventory().setContents(patrolInv.get(player.getName()));
+			player.getInventory().setArmorContents(patrolArmor.get(player.getName()));
+			//player.setHealth(patrolHealth.get(player.getName()));
+			player.setFoodLevel(patrolHunger.get(player.getName()));
+			player.setLevel(patrolLevel.get(player.getName()));
+			player.setExp(patrolExp.get(player.getName()));
+			
+			patrolInv.remove(player.getName());
+			patrolArmor.remove(player.getName());
+			patrolHealth.remove(player.getName());
+			patrolHunger.remove(player.getName());
+			patrolLevel.remove(player.getName());
+			patrolExp.remove(player.getName());
+		}
 	}
 }

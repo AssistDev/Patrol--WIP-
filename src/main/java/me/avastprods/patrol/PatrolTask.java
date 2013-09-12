@@ -1,10 +1,15 @@
 package main.java.me.avastprods.patrol;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bukkit.entity.Player;
 
 
 public class PatrolTask implements Runnable {
 
+	Map<String, Integer> patrolTasks = new HashMap<>();
+	
 	static Patrol clazz;
 
 	public PatrolTask(Patrol instance) {
@@ -25,6 +30,11 @@ public class PatrolTask implements Runnable {
 	
 	public void run() {
 		PatrolManager manager = new PatrolManager(clazz);
-		manager.next(player);
+		
+		if(manager.next(player)) {
+			
+		} else {
+			manager.stop(player);
+		}
 	}
 }
