@@ -36,7 +36,6 @@ public class CommandManager implements CommandExecutor {
 						}
 						
 						s.sendMessage("[Patrol] Now looping through all online players.");
-						return true;
 					}
 					
 					return true;
