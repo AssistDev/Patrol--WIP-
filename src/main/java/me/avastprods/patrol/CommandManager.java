@@ -32,6 +32,7 @@ public class CommandManager implements CommandExecutor {
 							s.sendMessage("[Patrol] Now patrolling: " + manager.patrolCurrent.get(s.getName()));
 						} else {
 							s.sendMessage("[Patrol] Found 0 available players.");
+							return true;
 						}
 						
 						s.sendMessage("[Patrol] Now looping through all online players.");
