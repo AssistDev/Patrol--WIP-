@@ -81,33 +81,33 @@ public class PatrolManager {
 	 * @param player
 	 * @return - Next patrolled player
 	 */
-	public boolean next(Player player) {
-		if(patrolList.containsKey(player.getName())) {
+	public boolean run(Player player) {
+		if (patrolList.containsKey(player.getName())) {
 			int phase = patrolPhase.get(player.getName());
-			
-			if(phase <= Bukkit.getOnlinePlayers().length) {
+
+			if (phase <= Bukkit.getOnlinePlayers().length) {
 				Random rand = new Random();
-				
-				for(String str : patrolList.get(player.getName())) {
-					if(!str.equalsIgnoreCase(Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)].getName()) && str.equalsIgnoreCase(player.getName())) {
+
+				for (String str : patrolList.get(player.getName())) {
+					if (!str.equalsIgnoreCase(Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)].getName()) && str.equalsIgnoreCase(player.getName())) {
 						Player r = Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)];
-						
+
 						List<String> list = patrolList.get(player.getName());
 						list.add(r.getName());
-						
+
 						patrolList.put(player.getName(), list);
-						
+
 						patrolPhase.put(player.getName(), phase + 1);
 						patrolCurrent.put(player.getName(), r.getName());
-						
-						patrol(player, r);
-						
+
+						patrol(player, r, true);
+
 						return true;
 					}
 				}
 			}
 		}
-		
+
 		return false;
 	}
 	
@@ -116,14 +116,23 @@ public class PatrolManager {
 	 * @param player - Patroller
 	 * @param target - Player to be patrolled
 	 */
-	public void patrol(Player player, Player target) {		
-		target.hidePlayer(player);
-		
-		player.teleport(target.getLocation());
-		player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1));
-		
-		PatrolTask task = new PatrolTask(clazz);
-		task.setId(Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(clazz, task, 200L), player);
+	public void patrol(Player player, Player target, boolean next) {
+		if (next) {
+			target.hidePlayer(player);
+
+			player.teleport(target.getLocation());
+			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1));
+
+			PatrolTask task = new PatrolTask(clazz);
+			task.setId(Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(clazz, task, 200L), player);
+		} else {
+			target.hidePlayer(player);
+
+			player.teleport(target.getLocation());
+			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1));
+			
+			patrolCurrent.put(player.getName(), target.getName());
+		}
 	}
 	
 	/**

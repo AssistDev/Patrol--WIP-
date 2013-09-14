@@ -31,6 +31,6 @@ public class PatrolTask implements Runnable {
 	public void run() {
 		PatrolManager manager = new PatrolManager(clazz);
 		
-		if(!manager.next(player)) manager.stop(player);
+		if(!manager.run(player)) manager.stop(player);
 	}
 }
