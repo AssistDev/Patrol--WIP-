@@ -1,8 +1,5 @@
 package main.java.me.avastprods.patrol;
 
-import java.util.Map.Entry;
-
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,24 +15,15 @@ public class EventManager implements Listener {
 	public EventManager(Patrol instance) {
 		clazz = instance;
 	}
-	
+
 	@EventHandler
 	public void onEvent(PlayerMoveEvent event) {
 		PatrolManager manager = new PatrolManager(clazz);
-		
-		if(manager.patrolCurrent.containsValue(event.getPlayer().getName())) {
-			String str = "";
-			
-			for(Entry<String, String> entry : manager.patrolCurrent.entrySet()) {
-				if(entry.getValue().equalsIgnoreCase(event.getPlayer().getName())) {
-					str = entry.getKey();
-					break;
-				}
-			}
-			
-			Player patroller = Bukkit.getPlayer(str);
+
+		if (manager.patrolCurrent.containsValue(event.getPlayer().getName())) {
 			Player patrolled = event.getPlayer();
-			
+			Player patroller = manager.getPatroller(patrolled);
+
 			patroller.getLocation().setX(patrolled.getLocation().getX());
 			patroller.getLocation().setY(patrolled.getLocation().getY());
 			patroller.getLocation().setZ(patrolled.getLocation().getZ());
@@ -43,65 +31,38 @@ public class EventManager implements Listener {
 			patroller.getLocation().setYaw(patrolled.getLocation().getYaw());
 		}
 	}
-	
+
 	@EventHandler
 	public void onOpen(InventoryOpenEvent event) {
 		PatrolManager manager = new PatrolManager(clazz);
 
 		if (manager.patrolCurrent.containsValue(event.getPlayer().getName())) {
-			String str = "";
-
-			for (Entry<String, String> entry : manager.patrolCurrent.entrySet()) {
-				if (entry.getValue().equalsIgnoreCase(event.getPlayer().getName())) {
-					str = entry.getKey();
-					break;
-				}
-			}
-			
-			Player patroller = Bukkit.getPlayer(str);
 			Player patrolled = (Player) event.getPlayer();
-			
+			Player patroller = manager.getPatroller(patrolled);
+
 			patroller.openInventory(patrolled.getInventory());
 		}
 	}
-	
+
 	@EventHandler
 	public void onClose(InventoryCloseEvent event) {
 		PatrolManager manager = new PatrolManager(clazz);
 
 		if (manager.patrolCurrent.containsValue(event.getPlayer().getName())) {
-			String str = "";
+			Player patroller = manager.getPatroller((Player) event.getPlayer());
 
-			for (Entry<String, String> entry : manager.patrolCurrent.entrySet()) {
-				if (entry.getValue().equalsIgnoreCase(event.getPlayer().getName())) {
-					str = entry.getKey();
-					break;
-				}
-			}
-			
-			Player patroller = Bukkit.getPlayer(str);
-			
 			patroller.closeInventory();
 		}
 	}
-	
+
 	@EventHandler
 	public void onClick(InventoryClickEvent event) {
 		PatrolManager manager = new PatrolManager(clazz);
 
 		if (manager.patrolCurrent.containsValue(event.getWhoClicked().getName())) {
-			String str = "";
-
-			for (Entry<String, String> entry : manager.patrolCurrent.entrySet()) {
-				if (entry.getValue().equalsIgnoreCase(event.getWhoClicked().getName())) {
-					str = entry.getKey();
-					break;
-				}
-			}
-			
-			Player patroller = Bukkit.getPlayer(str);
 			Player patrolled = (Player) event.getWhoClicked();
-			
+			Player patroller = manager.getPatroller(patrolled);
+
 			patroller.getInventory().setContents(patrolled.getInventory().getContents());
 		}
 	}

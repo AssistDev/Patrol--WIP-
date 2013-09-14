@@ -1,5 +1,6 @@
 package main.java.me.avastprods.patrol;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,15 +21,16 @@ public class CommandManager implements CommandExecutor {
 		}
 		
 		Player s = (Player) sender;
+		PatrolManager manager = new PatrolManager(clazz);
 		
 		if(cmd.getName().equalsIgnoreCase("patrol")) {
 			if(args.length > 0) {
 				if(args[0].equalsIgnoreCase("all")) {
-					if(args.length == 1) {
-						PatrolManager manager = new PatrolManager(clazz);
-				
+					if(args.length == 1) {			
 						if(manager.next(s)) {
 							s.sendMessage("[Patrol] Now patrolling: " + manager.patrolCurrent.get(s.getName()));
+						} else {
+							s.sendMessage("[Patrol] Found 0 available players.");
 						}
 						
 						s.sendMessage("[Patrol] Now looping through all online players.");
@@ -38,7 +40,9 @@ public class CommandManager implements CommandExecutor {
 				
 				if(args[0].equalsIgnoreCase("stop")) {
 					if(args.length == 1) {
-						
+						s.sendMessage("[Patrol] Finished patrolling.");
+						s.sendMessage("[Patrol] Players you patrolled: " + StringUtils.join(manager.patrolList.get(s.getName()).toArray(), ' ', 0, manager.patrolList.get(s.getName()).toArray().length));
+						manager.stop(s);
 					}
 				}
 			}

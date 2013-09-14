@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,7 +13,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class PatrolManager {
-
 	public Patrol clazz;
 	
 	public PatrolManager(Patrol instance) {
@@ -29,6 +29,7 @@ public class PatrolManager {
 	 * Contains information of patroller and patroller phase.
 	 * [Patroller, Phase]
 	 */
+	
 	public Map<String, Integer> patrolPhase = new HashMap<>();
 	
 	/**
@@ -85,12 +86,10 @@ public class PatrolManager {
 			int phase = patrolPhase.get(player.getName());
 			
 			if(phase <= Bukkit.getOnlinePlayers().length) {
-				int next = phase + 1;
-				
 				Random rand = new Random();
 				
 				for(String str : patrolList.get(player.getName())) {
-					if(!str.equalsIgnoreCase(Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)].getName())) {
+					if(!str.equalsIgnoreCase(Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)].getName()) && str.equalsIgnoreCase(player.getName())) {
 						Player r = Bukkit.getOnlinePlayers()[rand.nextInt(Bukkit.getOnlinePlayers().length)];
 						
 						List<String> list = patrolList.get(player.getName());
@@ -98,7 +97,7 @@ public class PatrolManager {
 						
 						patrolList.put(player.getName(), list);
 						
-						patrolPhase.put(player.getName(), next);
+						patrolPhase.put(player.getName(), phase + 1);
 						patrolCurrent.put(player.getName(), r.getName());
 						
 						patrol(player, r);
@@ -117,7 +116,7 @@ public class PatrolManager {
 	 * @param player - Patroller
 	 * @param target - Player to be patrolled
 	 */
-	public void patrol(Player player, Player target) {
+	public void patrol(Player player, Player target) {		
 		target.hidePlayer(player);
 		
 		player.teleport(target.getLocation());
@@ -164,7 +163,7 @@ public class PatrolManager {
 			
 			player.getInventory().setContents(patrolInv.get(player.getName()));
 			player.getInventory().setArmorContents(patrolArmor.get(player.getName()));
-			//player.setHealth(patrolHealth.get(player.getName()));
+			player.setHealth(patrolHealth.containsKey(player.getName()) ? patrolHealth.get(player.getName()) : 10.0);
 			player.setFoodLevel(patrolHunger.get(player.getName()));
 			player.setLevel(patrolLevel.get(player.getName()));
 			player.setExp(patrolExp.get(player.getName()));
@@ -176,5 +175,20 @@ public class PatrolManager {
 			patrolLevel.remove(player.getName());
 			patrolExp.remove(player.getName());
 		}
+	}
+	
+	/**
+	 * Gets the patroller of a player.
+	 * @param patrolled Patrolled player.
+	 * @return If exists, the patroller of patrolled, otherwise null.
+	 */
+	public Player getPatroller(Player patrolled) {
+		for (Entry<String, String> entry : patrolCurrent.entrySet()) {
+			if (entry.getValue().equalsIgnoreCase(patrolled.getName())) {
+				return Bukkit.getPlayer(entry.getKey());
+			}
+		}
+		
+		return null;
 	}
 }
